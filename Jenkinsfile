@@ -20,7 +20,6 @@ pipeline {
                              --dockerfile `pwd`/producer/Dockerfile \
                              --destination=alexfersh/producer:${BUILD_NUMBER} \
                              --destination=alexfersh/producer:latest \
-                             --cleanup
             '''
           }
         }
