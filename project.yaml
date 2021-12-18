@@ -26,6 +26,7 @@ spec:
         - image: alexfersh/producer:<TAG>
           imagePullPolicy: Always
           name: producer
+          tty: true
           command: ["python"]
           args: ["producer.py", "-p", "5672", "-s", "rabbitmq", "-m", "Hello", "-r", "30"]
 
@@ -51,6 +52,7 @@ spec:
         - image: alexfersh/consumer:<TAG>
           imagePullPolicy: Always
           name: consumer
+          tty: true
           command: ["python"]
           args: ["consumer.py", "-p", "5672", "-s", "rabbitmq"]
 
