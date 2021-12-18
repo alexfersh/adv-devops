@@ -13,7 +13,7 @@ pipeline {
   stages {
     stage('Kaniko - build & push Producer app image') {
       steps {
-        container('kaniko') {
+        container('kaniko-1') {
           script {
             sh '''
             /kaniko/executor --context `pwd`/producer \
@@ -27,7 +27,7 @@ pipeline {
     }
     stage('Kaniko - build & push Consumer app image') {
       steps {
-        container('kaniko') {
+        container('kaniko-2') {
           script {
             sh '''
             /kaniko/executor --context `pwd`/consumer \
