@@ -19,6 +19,7 @@ pipeline {
             /kaniko/executor --dockerfile `pwd`/producer/Dockerfile \
                              --context `pwd`/producer \
                              --destination=alexfersh/producer:${BUILD_NUMBER} \
+                             --destination=alexfersh/producer:latest  
                              --cleanup
             '''
           }
@@ -33,6 +34,7 @@ pipeline {
             /kaniko/executor --dockerfile `pwd`/consumer/Dockerfile \
                              --context `pwd`/consumer \
                              --destination=alexfersh/consumer:${BUILD_NUMBER} \
+                             --destination=alexfersh/consumer:latest
                              --cleanup
             '''
           }
