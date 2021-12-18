@@ -16,10 +16,11 @@ pipeline {
         container('kaniko') {
           script {
             sh '''
-            /kaniko/executor --dockerfile `pwd`/producer/Dockerfile \
-                             --context `pwd`/producer \
+            /kaniko/executor --context `pwd` \
+                             --context-sub-path `pwd`/producer \
+                             --dockerfile `pwd`/producer/Dockerfile \
                              --destination=alexfersh/producer:${BUILD_NUMBER} \
-                             --destination=alexfersh/producer:latest  
+                             --destination=alexfersh/producer:latest \
                              --cleanup
             '''
           }
@@ -31,10 +32,11 @@ pipeline {
         container('kaniko') {
           script {
             sh '''
-            /kaniko/executor --dockerfile `pwd`/consumer/Dockerfile \
-                             --context `pwd`/consumer \
+            /kaniko/executor --context `pwd` \
+                             --context-sub-path `pwd`/consumer \
+                             --dockerfile `pwd`/consumer/Dockerfile \
                              --destination=alexfersh/consumer:${BUILD_NUMBER} \
-                             --destination=alexfersh/consumer:latest
+                             --destination=alexfersh/consumer:latest \
                              --cleanup
             '''
           }
