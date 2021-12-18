@@ -11,6 +11,18 @@ pipeline {
   }
 
   stages {
+    stage('Deploy RabbitMQ App to Kubernetes') {     
+      steps {
+        container('kubectl') {
+          withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
+            //sh 'sed -i "s/<TAG>/${BUILD_NUMBER}/" project.yaml'
+            sh 'kubectl apply -f namespace.yaml'
+            sh 'kubectl apply -f rabbitmq-deployment.yaml'
+            sh 'kubectl apply -f rabbitmq-service.yaml'
+          }
+        }
+      }
+    }
     stage('Build application images with Kaniko and push them into DockerHub public repository') {
       parallel {
         stage('Kaniko - build & push Producer app image') {
@@ -45,13 +57,26 @@ pipeline {
         }
       }
     }
-    stage('Deploy App to Kubernetes') {     
+    stage('Wait for some useful output...') {     
+      steps {
+        container('kubectl') {
+          withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
+            sh '/bin/cat'
+          }
+        }
+      }
+    }
+    stage('Deploy Producer and Consumer Apps to Kubernetes') {     
       steps {
         container('kubectl') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             //sh 'sed -i "s/<TAG>/${BUILD_NUMBER}/" project.yaml'
-            sh 'sed -i "s/<TAG>/latest/" project.yaml'
-            sh 'kubectl apply -f project.yaml'
+            //sh 'sed -i "s/<TAG>/latest/" project.yaml'
+            //sh 'kubectl apply -f project.yaml'
+            sh 'sed -i "s/<TAG>/latest/" producer-deployment.yaml'
+            sh 'sed -i "s/<TAG>/latest/" consumer-deployment.yaml'
+            sh 'kubectl apply -f producer-deployment.yaml'
+            sh 'kubectl apply -f consumer-deployment.yaml'
           }
         }
       }

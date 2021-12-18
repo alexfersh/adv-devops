@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: producer
+  name: producer
+  namespace: adv-devops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: producer
+  template:
+    metadata:
+      labels:
+        app: producer
+    spec:
+      containers:
+        - image: alexfersh/producer:<TAG>
+          imagePullPolicy: Always
+          name: producer
+          tty: true
+          command: ["python"]
+          args: ["producer.py", "-p", "5672", "-s", "rabbitmq", "-m", "Hello", "-r", "30"]

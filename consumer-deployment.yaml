@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: consumer
+  name: consumer
+  namespace: adv-devops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer
+  template:
+    metadata:
+      labels:
+        app: consumer
+    spec:
+      containers:
+        - image: alexfersh/consumer:<TAG>
+          imagePullPolicy: Always
+          name: consumer
+          tty: true
+          command: ["python"]
+          args: ["consumer.py", "-p", "5672", "-s", "rabbitmq"]
