@@ -16,8 +16,7 @@ pipeline {
         container('kaniko') {
           script {
             sh '''
-            /kaniko/executor --context `pwd` \
-                             --context-sub-path `pwd`/producer \
+            /kaniko/executor --context `pwd`/producer \
                              --dockerfile `pwd`/producer/Dockerfile \
                              --destination=alexfersh/producer:${BUILD_NUMBER} \
                              --destination=alexfersh/producer:latest \
@@ -32,8 +31,7 @@ pipeline {
         container('kaniko') {
           script {
             sh '''
-            /kaniko/executor --context `pwd` \
-                             --context-sub-path `pwd`/consumer \
+            /kaniko/executor --context `pwd`/consumer \
                              --dockerfile `pwd`/consumer/Dockerfile \
                              --destination=alexfersh/consumer:${BUILD_NUMBER} \
                              --destination=alexfersh/consumer:latest \
