@@ -15,17 +15,6 @@ pipeline {
       steps {
         container('kubectl') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
-            //sh 'sed -i "s/<TAG>/${BUILD_NUMBER}/" project.yaml'
-            /***
-            sh 'kubectl apply -f namespace.yaml'
-            sh 'kubectl apply -f rabbitmq-deployment.yaml'
-            sh 'kubectl apply -f rabbitmq-service.yaml'
-            sh "name_space=`cat namespace.yaml | grep name: | tr -s ' ' | cut -d ' ' -f3`" 
-            sh "kubectl -n ${name_space} describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt"
-            sh 'cluster_ip=`cat clusterip.txt`'  
-            sh 'sed -i "s/rabbitmq/$cluster_ip/" producer-deployment.yaml'
-            sh 'sed -i "s/rabbitmq/$cluster_ip/" consumer-deployment.yaml'
-            ***/ 
             sh '''
             kubectl apply -f namespace.yaml
             kubectl apply -f rabbitmq-deployment.yaml
@@ -74,30 +63,16 @@ pipeline {
         }
       }
     }
-    /***
-    stage('Wait for some useful output...') {     
-      steps {
-        container('kubectl') {
-          withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
-            sh "cluster_ip=`kubectl describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2`"
-            sh 'sed -i "s/rabbitmq/${cluster_ip}/" producer-deployment.yaml'
-            sh 'sed -i "s/rabbitmq/${cluster_ip}/" consumer-deployment.yaml'
-          }
-        }
-      }
-    }
-    ***/
     stage('Deploy Producer and Consumer Apps to Kubernetes') {     
       steps {
         container('kubectl') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
-            //sh 'sed -i "s/<TAG>/${BUILD_NUMBER}/" project.yaml'
-            //sh 'sed -i "s/<TAG>/latest/" project.yaml'
-            //sh 'kubectl apply -f project.yaml'
-            sh 'sed -i "s/<TAG>/latest/" producer-deployment.yaml'
-            sh 'sed -i "s/<TAG>/latest/" consumer-deployment.yaml'
-            sh 'kubectl apply -f producer-deployment.yaml'
-            sh 'kubectl apply -f consumer-deployment.yaml'
+            sh '''
+            sed -i "s/<TAG>/latest/" producer-deployment.yaml
+            sed -i "s/<TAG>/latest/" consumer-deployment.yaml
+            kubectl apply -f producer-deployment.yaml
+            kubectl apply -f consumer-deployment.yaml
+            '''
           }
         }
       }
