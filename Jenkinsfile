@@ -19,6 +19,9 @@ pipeline {
             sh 'kubectl apply -f namespace.yaml'
             sh 'kubectl apply -f rabbitmq-deployment.yaml'
             sh 'kubectl apply -f rabbitmq-service.yaml'
+            sh "cluster_ip=`kubectl describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2`"
+            sh 'sed -i "s/rabbitmq/${cluster_ip}/" producer-deployment.yaml'
+            sh 'sed -i "s/rabbitmq/${cluster_ip}/" consumer-deployment.yaml'
           }
         }
       }
@@ -57,6 +60,7 @@ pipeline {
         }
       }
     }
+    /***
     stage('Wait for some useful output...') {     
       steps {
         container('kubectl') {
@@ -68,6 +72,7 @@ pipeline {
         }
       }
     }
+    ***/
     stage('Deploy Producer and Consumer Apps to Kubernetes') {     
       steps {
         container('kubectl') {
