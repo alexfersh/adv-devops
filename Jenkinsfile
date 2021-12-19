@@ -61,8 +61,9 @@ pipeline {
       steps {
         container('kubectl') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
-            sh "sed -i 's/rabbitmq/`kubectl describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2`/' producer-deployment.yaml"
-            sh "sed -i 's/rabbitmq/`kubectl describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2`/' consumer-deployment.yaml"
+            sh 'cluster_ip=`kubectl describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2`'
+            sh 'sed -i "s/rabbitmq/${cluster_ip}/" producer-deployment.yaml'
+            sh 'sed -i "s/rabbitmq/${cluster_ip}/" consumer-deployment.yaml'
           }
         }
       }
