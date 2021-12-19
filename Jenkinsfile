@@ -19,8 +19,8 @@ pipeline {
             sh 'kubectl apply -f namespace.yaml'
             sh 'kubectl apply -f rabbitmq-deployment.yaml'
             sh 'kubectl apply -f rabbitmq-service.yaml'
-            sh "nmspace=`cat namespace.yaml | grep name: | tr -s ' ' | cut -d ' ' -f3`" 
-            sh "cluster_ip=`kubectl -n ${nmspace} describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2`"
+            sh "name_space=`cat namespace.yaml | grep name: | tr -s ' ' | cut -d ' ' -f3`" 
+            sh "cluster_ip=`kubectl -n $name_space describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2`"
             sh 'sed -i "s/rabbitmq/$cluster_ip/" producer-deployment.yaml'
             sh 'sed -i "s/rabbitmq/$cluster_ip/" consumer-deployment.yaml'
           }
