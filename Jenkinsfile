@@ -61,7 +61,8 @@ pipeline {
       steps {
         container('kubectl') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
-            sh '/bin/cat'
+            sh "sed -i 's/rabbitmq/$(kubectl describe svc/rabbitmq-service | grep IP: | awk '{print $2;}')/' producer-deployment.yaml"
+            sh "sed -i 's/rabbitmq/$(kubectl describe svc/rabbitmq-service | grep IP: | awk '{print $2;}')/' consumer-deployment.yaml"
           }
         }
       }
