@@ -16,6 +16,7 @@ pipeline {
         container('kubectl') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             //sh 'sed -i "s/<TAG>/${BUILD_NUMBER}/" project.yaml'
+            /***
             sh 'kubectl apply -f namespace.yaml'
             sh 'kubectl apply -f rabbitmq-deployment.yaml'
             sh 'kubectl apply -f rabbitmq-service.yaml'
@@ -24,6 +25,17 @@ pipeline {
             sh 'cluster_ip=`cat clusterip.txt`'  
             sh 'sed -i "s/rabbitmq/$cluster_ip/" producer-deployment.yaml'
             sh 'sed -i "s/rabbitmq/$cluster_ip/" consumer-deployment.yaml'
+            ***/ 
+            sh '''
+            kubectl apply -f namespace.yaml
+            kubectl apply -f rabbitmq-deployment.yaml
+            kubectl apply -f rabbitmq-service.yaml
+            name_space=`cat namespace.yaml | grep name: | tr -s ' ' | cut -d ' ' -f3`
+            kubectl -n $name_space describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
+            cluster_ip=`cat clusterip.txt`
+            sed -i "s/rabbitmq/$cluster_ip/" producer-deployment.yaml
+            sed -i "s/rabbitmq/$cluster_ip/" consumer-deployment.yaml
+            '''
           }
         }
       }
