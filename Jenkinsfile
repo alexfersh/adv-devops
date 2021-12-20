@@ -17,6 +17,8 @@ pipeline {
         container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo update
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
             helm upgrade rabbitmq bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace
             //kubectl apply -f namespace.yaml
