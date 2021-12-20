@@ -6,6 +6,7 @@ pipeline {
 
   agent {
     kubernetes {
+      defaultContainer 'jnlp'
       yamlFile 'builder.yaml'
     }
   }
@@ -13,17 +14,19 @@ pipeline {
   stages {
     stage('Deploy RabbitMQ App to Kubernetes') {     
       steps {
-        container('kubectl') {
+        container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
-            kubectl apply -f namespace.yaml
-            kubectl apply -f rabbitmq-deployment.yaml
-            kubectl apply -f rabbitmq-service.yaml
-            name_space=`cat namespace.yaml | grep name: | tr -s ' ' | cut -d ' ' -f3`
-            kubectl -n $name_space describe svc rabbitmq-service | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
+            namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
+            helm upgrade rabbitmq bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace
+            //kubectl apply -f namespace.yaml
+            //kubectl apply -f rabbitmq-deployment.yaml
+            //kubectl apply -f rabbitmq-service.yaml
+            //name_space=`cat namespace.yaml | grep name: | tr -s ' ' | cut -d ' ' -f3`
+            kubectl -n $namespace describe svc rabbitmq | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
             cluster_ip=`cat clusterip.txt`
-            sed -i "s/rabbitmq/$cluster_ip/" producer-deployment.yaml
-            sed -i "s/rabbitmq/$cluster_ip/" consumer-deployment.yaml
+            sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/producer-deployment.yaml
+            sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/consumer-deployment.yaml
             '''
           }
         }
@@ -65,13 +68,15 @@ pipeline {
     }
     stage('Deploy Producer and Consumer Apps to Kubernetes') {     
       steps {
-        container('kubectl') {
+        container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
-            sed -i "s/<TAG>/latest/" producer-deployment.yaml
-            sed -i "s/<TAG>/latest/" consumer-deployment.yaml
-            kubectl apply -f producer-deployment.yaml
-            kubectl apply -f consumer-deployment.yaml
+            sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
+            sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
+            namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
+            helm upgrade rabbitmq-cons-prod ./helm --install --force --namespace=$namespace
+            //kubectl apply -f producer-deployment.yaml
+            //kubectl apply -f consumer-deployment.yaml
             '''
           }
         }

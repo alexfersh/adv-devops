@@ -1,0 +1,11 @@
+auth:
+  username: guest
+  password: guest
+service:
+  type: NodePort
+  port: 5672
+  portName: amqp
+  nodePort: ""
+  managerPort: 15672
+  managerPortName: http
+  managerNodePort: 32272
