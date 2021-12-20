@@ -10,7 +10,7 @@ spec:
         - /bin/cat
       tty: true
     - name: helm
-      image: lachlanevenson/k8s-helm:3.7.2
+      image: lachlanevenson/k8s-helm
       command:
         - /bin/cat
       tty: true    
