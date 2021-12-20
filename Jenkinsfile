@@ -17,6 +17,7 @@ pipeline {
         container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
+            helm init
             helm repo add bitnami https://charts.bitnami.com/bitnami
             helm repo update
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
@@ -76,6 +77,7 @@ pipeline {
             sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
             sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
+            helm init
             helm upgrade rabbitmq-cons-prod ./helm --install --force --namespace=$namespace
             //kubectl apply -f producer-deployment.yaml
             //kubectl apply -f consumer-deployment.yaml
