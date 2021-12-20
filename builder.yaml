@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
     - name: kubectl
-      image: oamdev/alpine-k8s
+      image: oamdev/alpine-k8s:1.18.2
       command:
         - /bin/cat
       tty: true
