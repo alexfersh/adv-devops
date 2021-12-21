@@ -17,15 +17,10 @@ pipeline {
         container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
-            //helm init --skip-repos
             helm repo add bitnami https://charts.bitnami.com/bitnami
             helm repo update
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
             helm upgrade rabbitmq bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace
-            //kubectl apply -f namespace.yaml
-            //kubectl apply -f rabbitmq-deployment.yaml
-            //kubectl apply -f rabbitmq-service.yaml
-            //name_space=`cat namespace.yaml | grep name: | tr -s ' ' | cut -d ' ' -f3`
             kubectl -n $namespace describe svc rabbitmq | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
             cluster_ip=`cat clusterip.txt`
             sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/producer-deployment.yaml
@@ -77,10 +72,7 @@ pipeline {
             sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
             sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
-            //helm init --skip-repos
             helm upgrade rabbitmq-cons-prod ./helm --install --force --namespace=$namespace
-            //kubectl apply -f producer-deployment.yaml
-            //kubectl apply -f consumer-deployment.yaml
             '''
           }
         }
