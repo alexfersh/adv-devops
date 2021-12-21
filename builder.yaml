@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
     - name: helm
-      image: joshendriks/alpine-k8s
+      image: alexfersh/alpine-k8s:latest
       command:
         - /bin/cat
       tty: true    
