@@ -1,6 +1,5 @@
 auth:
-  username: guest
-  password: guest
+  username: rabbitmq
 service:
   type: NodePort
   port: 5672

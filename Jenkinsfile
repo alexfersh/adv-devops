@@ -22,9 +22,14 @@ pipeline {
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
             helm upgrade rabbitmq bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace
             kubectl -n $namespace describe svc rabbitmq | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
+            kubectl get secret --namespace adv-devops rabbitmq -o jsonpath="{.data.rabbitmq-password}" | base64 --decode > rabbitmq_pass.txt
             cluster_ip=`cat clusterip.txt`
+            rabbitmq_password=`cat rabbitmq_pass.txt`
+            rabbitmq_username=`cat rabbitmq-values.yaml | grep username: | tr -s ' ' | cut -d ' ' -f3`
             sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/producer-deployment.yaml
             sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/consumer-deployment.yaml
+            sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./consumer/consumer.py
+            sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./producer/producer.py
             '''
           }
         }
