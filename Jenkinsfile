@@ -26,7 +26,7 @@ pipeline {
             sh '''
             id
             ls -l
-            chmod +x ./deploy_rabbitmq.sh\
+            chmod +x ./deploy_rabbitmq.sh
             ls -l
             sh ./deploy_rabbitmq.sh
             '''
