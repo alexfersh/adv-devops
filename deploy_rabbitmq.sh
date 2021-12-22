@@ -14,14 +14,14 @@ echo "Helm release name:" $releasename
 
 check_namespace=$(kubectl get namespace | grep -w $namespace | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1)
 echo "Namespace to check:" $check_namespace
-if [[ $namespace != $check_namespace ]]; then
+if [[ -z $check_namespace ]]; then
         echo "No appropriate namespace for the project was found. Creating namespace $namespace as per the project settings..."
 	kubectl create namespace $namespace
 fi
 
 check_release=$(helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1)
 echo "Helm release to check:" $check_release
-if [[ $releasename != $check_release ]]; then
+if [[ -z $check_release ]]; then
 
         echo "RabbitMQ Helm chart is not installed. Installing it..."
 
