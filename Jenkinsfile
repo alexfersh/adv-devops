@@ -25,6 +25,7 @@ pipeline {
             if [[ -z kubectl get namespace | grep $namespace ]]
             then
             kubectl create $namespace
+            fi
 
             if [[ -z helm --namespace=$namespace list | grep $releasename ]]
             then
