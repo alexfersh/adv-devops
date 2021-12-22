@@ -87,7 +87,8 @@ pipeline {
             sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
             sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
-            helm upgrade rabbitmq-cons-prod ./helm --install --force --namespace=$namespace
+            releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
+            helm upgrade $releasename-cons-prod ./helm --install --force --namespace=$namespace
             '''
           }
         }
