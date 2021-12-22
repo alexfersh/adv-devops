@@ -22,12 +22,12 @@ pipeline {
             export namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
             export releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
 
-            if [[ -z kubectl get namespace | grep $namespace ]]
+            if [[ -z kubectl get namespace \| grep $namespace ]]
             then
             kubectl create $namespace
             fi
 
-            if [[ -z helm --namespace=$namespace list | grep $releasename ]]
+            if [[ -z helm --namespace=$namespace list \| grep $releasename ]]
             then
             helm install $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --namespace=$namespace
 
@@ -52,8 +52,8 @@ pipeline {
             export podname=`kubectl --namespace $namespace get pods | grep rabbitmq-0 | cut -d ' ' -f1`
             kubectl --namespace $namespace describe pods $podname | grep RABBITMQ_PASSWORD: | tr -s ' ' | tr -d "<'>" | cut -d ':' -f2 | cut -d ' ' -f9 > rabbitmq_secret.txt
             export rabbitmq_secret=`cat rabbitmq_secret.txt`
-            export RABBITMQ_PASSWORD=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 --decode)
-            export RABBITMQ_ERLANG_COOKIE=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 --decode)
+            export RABBITMQ_PASSWORD=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d)
+            export RABBITMQ_ERLANG_COOKIE=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)
             helm upgrade $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace --set auth.password=$RABBITMQ_PASSWORD --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE
 
             export servicename=`kubectl --namespace $namespace get svc | grep -w rabbitmq | grep -v headless | cut -d ' ' -f1`
