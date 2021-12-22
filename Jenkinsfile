@@ -122,8 +122,8 @@ pipeline {
             sh '''
             sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
             sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
-            namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
-            releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
+            export namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
+            export releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
             helm upgrade $releasename-cons-prod ./helm --install --force --namespace=$namespace
             '''
           }
