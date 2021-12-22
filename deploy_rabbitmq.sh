@@ -5,19 +5,16 @@ HELM_REPO=https\:\/\/charts.bitnami.com\/bitnami
 echo "RabbitMQ Registry:" $RABBITMQ_REGISTRY
 echo "Bitnami Helm Repository:" $HELM_REPO
 
-
 helm repo add bitnami $HELM_REPO
 helm repo update
 export namespace=`cat ./helm/values.yaml | grep -w namespace: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
 export releasename=`cat ./helm/values.yaml | grep -w releasename: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
 
-check_namespace=`kubectl get namespace | grep -w $namespace | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1`
-if [[ `kubectl get namespace | grep -w $namespace | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1` != $namespace ]]; then
+if [[ $(kubectl get namespace | grep -w $namespace | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1) != $namespace ]]; then
 	kubectl create $namespace
 fi
 
-check_release=`helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1`
-if [[ `helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1` != $releasename ]]; then
+if [[ $(helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1) != $releasename ]]; then
 
 	helm upgrade $releasename $RABBITMQ_REGISTRY -f rabbitmq-values.yaml --install --force --namespace=$namespace
 
