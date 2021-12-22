@@ -1,7 +1,10 @@
 #!/bin/bash
 
-RABBITMQ_REGISTRY = "bitnami\/rabbitmq"
-HELM_REPO = "https:\/\/charts.bitnami.com\/bitnami"
+RABBITMQ_REGISTRY=bitnami\/rabbitmq
+HELM_REPO=https\:\/\/charts.bitnami.com\/bitnami
+echo $RABBITMQ_REGISTRY
+echo $HELM_REPO
+
 
 helm repo add bitnami $HELM_REPO
 helm repo update
