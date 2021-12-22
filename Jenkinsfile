@@ -24,10 +24,7 @@ pipeline {
         container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
-            id
-            ls -l
             chmod +x ./deploy_rabbitmq.sh
-            ls -l
             sh ./deploy_rabbitmq.sh
             '''
           }
@@ -75,9 +72,7 @@ pipeline {
             sh '''
             sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
             sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
-            ls -l
             chmod +x ./deploy_apps.sh
-            ls -l
             sh ./deploy_apps.sh
             ''' 
           }
