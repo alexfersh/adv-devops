@@ -26,8 +26,9 @@ pipeline {
             sh '''
             id
             ls -l
-            chmod +x ./deploy_rabbitmq.sh 
-            ./deploy_rabbitmq.sh
+            chmod +x ./deploy_rabbitmq.sh\
+            ls -l
+            sh ./deploy_rabbitmq.sh
             '''
           }
         }
@@ -76,7 +77,8 @@ pipeline {
             sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
             ls -l
             chmod +x ./deploy_apps.sh
-            ./deploy_apps.sh
+            ls -l
+            sh ./deploy_apps.sh
             ''' 
           }
         }
