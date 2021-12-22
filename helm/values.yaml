@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 namespace: adv-devops
-name: rabbitmq
+name: adv-devops-project
 
 replicaCount: 1
 
