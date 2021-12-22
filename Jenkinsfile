@@ -22,12 +22,12 @@ pipeline {
             export namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
             export releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
 
-            if [[ -z kubectl get namespace \| grep $namespace ]]
+            if [[ -z (kubectl get namespace | grep $namespace) ]]
             then
             kubectl create $namespace
             fi
 
-            if [[ -z helm --namespace=$namespace list \| grep $releasename ]]
+            if [[ -z (helm --namespace=$namespace list | grep $releasename) ]]
             then
             helm install $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --namespace=$namespace
 
