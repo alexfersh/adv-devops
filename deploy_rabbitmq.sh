@@ -10,19 +10,20 @@ helm repo update
 namespace=$(cat ./helm/values.yaml | grep -w namespace: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2)
 echo "Namespace:" $namespace
 releasename=$(cat ./helm/values.yaml | grep -w releasename: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2)
-echo "Helm release:" $releasename
+echo "Helm release name:" $releasename
 
 check_namespace=$(kubectl get namespace | grep -w $namespace | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1)
 echo "Namespace to check:" $check_namespace
-if [ $check_namespace != $namespace ]; then
+if [[ $namespace != $check_namespace ]]; then
+        echo "No appropriate namespace for the project was found. Creating namespace $namespace as per the project settings..."
 	kubectl create namespace $namespace
 fi
 
 check_release=$(helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1)
 echo "Helm release to check:" $check_release
-if [ $check_release != $releasename ]; then
+if [[ $releasename != $check_release ]]; then
 
-        echo "RabbitMQ Helm chart is not installed yet. Installing..."
+        echo "RabbitMQ Helm chart is not installed. Installing it..."
 
 	helm upgrade $releasename $RABBITMQ_REGISTRY -f rabbitmq-values.yaml --install --force --namespace=$namespace --create-namespace
 
