@@ -19,61 +19,61 @@ pipeline {
             sh '''
             helm repo add bitnami https://charts.bitnami.com/bitnami
             helm repo update
-            export namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
-            export releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
+            export namespace=`cat ./helm/values.yaml | grep -w namespace: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
+            export releasename=`cat ./helm/values.yaml | grep -w releasename: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
 
-            check_namespace=`kubectl get namespace | grep $namespace | tr -s ' ' | cut -d ' ' -f1`
-            if [[ -z $check_namespace ]]
-            then
-            kubectl create $namespace
+            check_namespace=`kubectl get namespace | grep -w $namespace | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1`
+            if [[ `kubectl get namespace | grep -w $namespace | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1` !== $namespace ]]; then
+            	kubectl create $namespace
             fi
 
-            check_release=`helm --namespace=$namespace list | grep $releasename | tr -s ' ' | cut -d ' ' -f1 | tr '\t' ' ' | cut -d ' ' -f1`
-            if [[ -z $check_release ]]
-            then
-            helm install $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --namespace=$namespace
+            check_release=`helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1`
+            if [[ $check_release !== $releasename ]]; then
+            	
+            	helm upgrade $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace
 
-            export servicename=`kubectl --namespace $namespace get svc | grep -w rabbitmq | grep -v headless | cut -d ' ' -f1`
-            kubectl --namespace $namespace describe svc $servicename | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
-            export cluster_ip=`cat clusterip.txt`
+            	export servicename=`kubectl --namespace $namespace get svc | grep -w $releasename | grep -v headless | cut -d ' ' -f1`
+            	kubectl --namespace $namespace describe svc $servicename | grep -w IP: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
+            	export cluster_ip=`kubectl --namespace $namespace get svc | grep -w $releasename | grep -v headless | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f3`
 
-            export podname=`kubectl --namespace $namespace get pods | grep rabbitmq-0 | cut -d ' ' -f1`
-            kubectl --namespace $namespace describe pods $podname | grep RABBITMQ_USERNAME: | tr -s ' ' | cut -d ' ' -f3 > rabbitmq_user.txt
-            export rabbitmq_username=`cat rabbitmq_user.txt`
-            kubectl --namespace $namespace describe pods $podname | grep RABBITMQ_PASSWORD: | tr -s ' ' | tr -d "<'>" | cut -d ':' -f2 | cut -d ' ' -f9 > rabbitmq_secret.txt
-            export rabbitmq_secret=`cat rabbitmq_secret.txt`
-            kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d > rabbitmq_pass.txt
-            export rabbitmq_password=`cat rabbitmq_pass.txt`
+            	export podname=`kubectl --namespace $namespace get pods | grep -w rabbitmq-0 | cut -d ' ' -f1`
+            	kubectl --namespace $namespace describe pods $podname | grep -w RABBITMQ_USERNAME: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f3 > rabbitmq_user.txt
+            	export rabbitmq_username=`cat rabbitmq_user.txt`
+            	kubectl --namespace $namespace describe pods $podname | grep -w RABBITMQ_PASSWORD: | tr '\t\n' ' ' | tr -s ' ' | tr -d "<'>" | cut -d ':' -f2 | cut -d ' ' -f9 > rabbitmq_secret.txt
+            	export rabbitmq_secret=`cat rabbitmq_secret.txt`
+            	kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d > rabbitmq_pass.txt
+            	export rabbitmq_password=`cat rabbitmq_pass.txt`
 
-            sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/producer-deployment.yaml
-            sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/consumer-deployment.yaml
-            sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./consumer/consumer.py
-            sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./producer/producer.py
+            	sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/producer-deployment.yaml
+            	sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/consumer-deployment.yaml
+            	sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./consumer/consumer.py
+            	sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./producer/producer.py
 
             else
-            export podname=`kubectl --namespace $namespace get pods | grep rabbitmq-0 | cut -d ' ' -f1`
-            kubectl --namespace $namespace describe pods $podname | grep RABBITMQ_PASSWORD: | tr -s ' ' | tr -d "<'>" | cut -d ':' -f2 | cut -d ' ' -f9 > rabbitmq_secret.txt
-            export rabbitmq_secret=`cat rabbitmq_secret.txt`
-            export RABBITMQ_PASSWORD=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d)
-            export RABBITMQ_ERLANG_COOKIE=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)
-            helm upgrade $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace --set auth.password=$RABBITMQ_PASSWORD --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE
+            	export podname=`kubectl --namespace $namespace get pods | grep -w rabbitmq-0 | cut -d ' ' -f1`
+            	kubectl --namespace $namespace describe pods $podname | grep -w RABBITMQ_PASSWORD: | tr '\t\n' ' ' | tr -s ' ' | tr -d "<'>" | cut -d ':' -f2 | cut -d ' ' -f9 > rabbitmq_secret.txt
+            	export rabbitmq_secret=`cat rabbitmq_secret.txt`
+            	export RABBITMQ_PASSWORD=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d)
+            	export RABBITMQ_ERLANG_COOKIE=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)
+            	
+            	helm upgrade $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace --set auth.password=$RABBITMQ_PASSWORD --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE
 
-            export servicename=`kubectl --namespace $namespace get svc | grep -w rabbitmq | grep -v headless | cut -d ' ' -f1`
-            kubectl --namespace $namespace describe svc $servicename | grep IP: | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
-            export cluster_ip=`cat clusterip.txt`
+            	export servicename=`kubectl --namespace $namespace get svc | grep -w $releasename | grep -v headless | cut -d ' ' -f1`
+            	kubectl --namespace $namespace describe svc $servicename | grep -w IP: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2 > clusterip.txt
+            	export cluster_ip=`kubectl --namespace $namespace get svc | grep -w $releasename | grep -v headless | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f3`
 
-            export podname=`kubectl --namespace $namespace get pods | grep rabbitmq-0 | cut -d ' ' -f1`
-            kubectl --namespace $namespace describe pods $podname | grep RABBITMQ_USERNAME: | tr -s ' ' | cut -d ' ' -f3 > rabbitmq_user.txt
-            export rabbitmq_username=`cat rabbitmq_user.txt`
-            kubectl --namespace $namespace describe pods $podname | grep RABBITMQ_PASSWORD: | tr -s ' ' | tr -d "<'>" | cut -d ':' -f2 | cut -d ' ' -f9 > rabbitmq_secret.txt
-            export rabbitmq_secret=`cat rabbitmq_secret.txt`
-            kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d > rabbitmq_pass.txt
-            export rabbitmq_password=`cat rabbitmq_pass.txt`
+            	export podname=`kubectl --namespace $namespace get pods | grep -w rabbitmq-0 | cut -d ' ' -f1`
+            	kubectl --namespace $namespace describe pods $podname | grep -w RABBITMQ_USERNAME: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f3 > rabbitmq_user.txt
+            	export rabbitmq_username=`cat rabbitmq_user.txt`
+            	kubectl --namespace $namespace describe pods $podname | grep -w RABBITMQ_PASSWORD: | tr '\t\n' ' ' | tr -s ' ' | tr -d "<'>" | cut -d ':' -f2 | cut -d ' ' -f9 > rabbitmq_secret.txt
+            	export rabbitmq_secret=`cat rabbitmq_secret.txt`
+            	kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d > rabbitmq_pass.txt
+            	export rabbitmq_password=`cat rabbitmq_pass.txt`
 
-            sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/producer-deployment.yaml
-            sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/consumer-deployment.yaml
-            sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./consumer/consumer.py
-            sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./producer/producer.py
+            	sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/producer-deployment.yaml
+            	sed -i "s/rabbitmq/$cluster_ip/" ./helm/templates/consumer-deployment.yaml
+            	sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./consumer/consumer.py
+            	sed -i "s/('guest', 'guest')/('$rabbitmq_username', '$rabbitmq_password')/" ./producer/producer.py
 
             fi
             '''
@@ -122,8 +122,8 @@ pipeline {
             sh '''
             sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
             sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
-            export namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
-            export releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
+            export namespace=`cat ./helm/values.yaml | grep -w namespace: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
+            export releasename=`cat ./helm/values.yaml | grep -w releasename: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
             helm upgrade $releasename-cons-prod ./helm --install --force --namespace=$namespace
             '''
           }
