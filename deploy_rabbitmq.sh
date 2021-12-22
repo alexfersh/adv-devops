@@ -2,8 +2,8 @@
 
 RABBITMQ_REGISTRY=bitnami\/rabbitmq
 HELM_REPO=https\:\/\/charts.bitnami.com\/bitnami
-echo $RABBITMQ_REGISTRY
-echo $HELM_REPO
+echo "RabbitMQ Registry:" $RABBITMQ_REGISTRY
+echo "Bitnami Helm Repository:" $HELM_REPO
 
 
 helm repo add bitnami $HELM_REPO
