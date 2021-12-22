@@ -1,5 +1,12 @@
 pipeline {
 
+  environment {
+    RABBITMQ_REGISTRY = 'bitnami/rabbitmq'
+    CONSUMER_REGISTRY = 'alexfersh/consumer'
+    PRODUCER_REGISTRY = 'alexfersh/producer'
+    HELM_REPO = 'https://charts.bitnami.com/bitnami'
+  }
+
   options {
     ansiColor('xterm')
   }
@@ -17,7 +24,7 @@ pipeline {
         container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
-            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo add bitnami $HELM_REPO
             helm repo update
             export namespace=`cat ./helm/values.yaml | grep -w namespace: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
             export releasename=`cat ./helm/values.yaml | grep -w releasename: | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f2`
@@ -30,7 +37,7 @@ pipeline {
             check_release=`helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1`
             if [[ `helm --namespace=$namespace list | grep -w $releasename | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f1` != $releasename ]]; then
             	
-            	helm upgrade $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace
+            	helm upgrade $releasename $RABBITMQ_REGISTRY -f rabbitmq-values.yaml --install --force --namespace=$namespace
 
             	export cluster_ip=`kubectl --namespace $namespace get svc | grep -w $releasename | grep -v headless | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f3`
             	export podname=`kubectl --namespace $namespace get pods | grep -w rabbitmq-0 | cut -d ' ' -f1`
@@ -49,7 +56,7 @@ pipeline {
             	export RABBITMQ_PASSWORD=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-password}" | base64 -d)
             	export RABBITMQ_ERLANG_COOKIE=$(kubectl --namespace $namespace get secret $rabbitmq_secret -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)
             	
-            	helm upgrade $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace --set auth.password=$RABBITMQ_PASSWORD --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE
+            	helm upgrade $releasename $RABBITMQ_REGISTRY -f rabbitmq-values.yaml --install --force --namespace=$namespace --set auth.password=$RABBITMQ_PASSWORD --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE
 
             	export cluster_ip=`kubectl --namespace $namespace get svc | grep -w $releasename | grep -v headless | tr '\t\n' ' ' | tr -s ' ' | cut -d ' ' -f3`
             	export podname=`kubectl --namespace $namespace get pods | grep -w rabbitmq-0 | cut -d ' ' -f1`
@@ -77,8 +84,8 @@ pipeline {
                 sh '''
                 /kaniko/executor --context `pwd`/producer \
                                  --dockerfile `pwd`/producer/Dockerfile \
-                                 --destination=alexfersh/producer:${BUILD_NUMBER} \
-                                 --destination=alexfersh/producer:latest \
+                                 --destination=$PRODUCER_REGISTRY:${BUILD_NUMBER} \
+                                 --destination=$PRODUCER_REGISTRY:latest \
                                  --cleanup
                 '''
               }
@@ -92,8 +99,8 @@ pipeline {
                 sh '''
                 /kaniko/executor --context `pwd`/consumer \
                                  --dockerfile `pwd`/consumer/Dockerfile \
-                                 --destination=alexfersh/consumer:${BUILD_NUMBER} \
-                                 --destination=alexfersh/consumer:latest \
+                                 --destination=$CONSUMER_REGISTRY:${BUILD_NUMBER} \
+                                 --destination=$CONSUMER_REGISTRY:latest \
                                  --cleanup
                 '''
               }
