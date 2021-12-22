@@ -20,7 +20,7 @@ pipeline {
             helm repo add bitnami https://charts.bitnami.com/bitnami
             helm repo update
             namespace=`cat ./helm/values.yaml | grep namespace: | tr -s ' ' | cut -d ' ' -f2`
-            releasename=`cat ./helm/values.yaml | grep name: | tr -s ' ' | cut -d ' ' -f2`
+            releasename=`cat ./helm/values.yaml | grep releasename: | tr -s ' ' | cut -d ' ' -f2`
 
             helm upgrade $releasename bitnami/rabbitmq -f rabbitmq-values.yaml --install --force --namespace=$namespace
 

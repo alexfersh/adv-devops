@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: {{ .Values.name }}-consumer
-  name: {{ .Values.name }}-consumer
+    app: {{ .Values.releasename }}-consumer
+  name: {{ .Values.releasename }}-consumer
   namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}-consumer
+      app: {{ .Values.releasename }}-consumer
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}-consumer
+        app: {{ .Values.releasename }}-consumer
     spec:
       containers:
         - image: {{ .Values.image.repository }}/consumer:<TAG>
