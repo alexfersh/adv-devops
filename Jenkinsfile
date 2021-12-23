@@ -70,8 +70,8 @@ pipeline {
         container('helm') {
           withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
             sh '''
-            sed -i "s/<TAG>/latest/" ./helm/templates/producer-deployment.yaml
-            sed -i "s/<TAG>/latest/" ./helm/templates/consumer-deployment.yaml
+            sed -i "s/<TAG>/${BUILD_NUMBER}/" ./helm/templates/producer-deployment.yaml
+            sed -i "s/<TAG>/${BUILD_NUMBER}/" ./helm/templates/consumer-deployment.yaml
             chmod +x ./deploy_apps.sh
             sh ./deploy_apps.sh
             ''' 

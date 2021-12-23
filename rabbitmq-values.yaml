@@ -6,3 +6,11 @@ service:
   managerPort: 15672
   managerPortName: http
   managerNodePort: 32272
+  metricsPort: 9419
+  metricsPortName: metrics
+  metricsNodePort: 32273
+metrics:
+  enabled: true
+  plugins: "rabbitmq_prometheus"
+extraPlugins: "rabbitmq_prometheus"
+  
