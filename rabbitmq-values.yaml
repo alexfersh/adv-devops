@@ -1,3 +1,5 @@
+configuration:
+  prometheus.tcp.port = 15692
 service:
   type: NodePort
   port: 5672
@@ -6,11 +8,11 @@ service:
   managerPort: 15672
   managerPortName: http
   managerNodePort: 32272
-  metricsPort: 9419
+  metricsPort: 15692
   metricsPortName: metrics
-  metricsNodePort: 32273
+  metricsNodePort: ""
 metrics:
   enabled: true
   plugins: "rabbitmq_prometheus"
 extraPlugins: "rabbitmq_prometheus"
-  
+
